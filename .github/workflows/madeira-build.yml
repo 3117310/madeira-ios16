@@ -54,15 +54,10 @@ jobs:
           sed -i '' 's/{ _, value in/{ value in/g' "$FILE2"
           sed -i '' 's/{ _, value in/{ value in/g' "$FILE3"
 
-      - name: Patch Toolbar SteamGames
-        run: |
-          FILE="app/Madeira/SteamGames.swift"
-          sed -i '' '/\.toolbar {/,/^[[:space:]]*}[[:space:]]*$/d' "$FILE"
-
       - name: Patch Toolbar SteamSignInView
         run: |
           FILE="app/Madeira/SwiftSteam/SteamSignInView.swift"
-          sed -i '' '/\.toolbar {/,/^[[:space:]]*}[[:space:]]*$/d' "$FILE"
+          sed -i '' '54,58d' "$FILE"
 
       - name: Build
         env:
