@@ -56,6 +56,7 @@ jobs:
         run: |
           FILE="app/Madeira/SwiftSteam/SteamSignInView.swift"
           sed -i '' '69,70d' "$FILE"
+          sed -i '' '64,68d' "$FILE"
           sed -i '' '54,58d' "$FILE"
 
       - name: Build
