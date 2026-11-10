@@ -42,6 +42,11 @@ jobs:
         run: |
           find app/Madeira -name "*.swift" -exec sed -i '' 's/{ _, \([a-zA-Z_]*\) in/{ \1 in/g' {} \;
 
+      - name: Fix Library startDock closure
+        run: |
+          FILE="app/Madeira/Library.swift"
+          sed -i '' '1771s/.*/    var startDock: (DockGame, Bool) -> Void = { _, _ in }/' "$FILE"
+
       - name: Patch SteamDownloadBackground
         run: |
           FILE="app/Madeira/SteamDownloadBackground.swift"
