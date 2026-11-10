@@ -20,6 +20,17 @@ jobs:
           git checkout v0.1.0
           git submodule update --init --recursive
 
+      - name: List Files
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo "=== Files ==="
+          ls -la
+          echo "=== Find xcodeproj ==="
+          find . -name "*.xcodeproj" -type d
+          echo "=== Find MadeiraApp.swift ==="
+          find . -name "MadeiraApp.swift"
+
       - name: Patch Observable
         run: |
           FILE="app/Madeira/SwiftSteam/Core/SteamSession.swift"
@@ -51,11 +62,20 @@ jobs:
 
       - name: Build
         run: |
-          xcodebuild -project app/Madeira.xcodeproj -scheme Madeira -destination 'generic/platform=iOS' -configuration Release build CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log || true
+          xcodebuild -project app/Madeira.xcodeproj -scheme Madeira -destination 'generic/platform=iOS' -configuration Release build CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log
+          echo "=== Build exit code: ${PIPESTATUS[0]} ==="
 
       - name: Show Errors
+        if: always()
         run: |
           echo "=== Availability errors ==="
           grep -c "is only available in iOS 17.0 or newer" build.log || echo "0"
           echo "=== All errors ==="
           grep "error:" build.log | head -30 || echo "none"
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
