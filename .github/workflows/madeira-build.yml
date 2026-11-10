@@ -20,16 +20,20 @@ jobs:
           git checkout v0.1.0
           git submodule update --init --recursive
 
-      - name: List Files
+      - name: Debug - List Files
         run: |
-          echo "=== Current directory ==="
+          echo "=== PWD ==="
           pwd
-          echo "=== Files ==="
+          echo "=== ROOT LS ==="
           ls -la
-          echo "=== Find xcodeproj ==="
+          echo "=== APP LS ==="
+          ls -la app/
+          echo "=== FIND XCODEPROJ ==="
           find . -name "*.xcodeproj" -type d
-          echo "=== Find MadeiraApp.swift ==="
-          find . -name "MadeiraApp.swift"
+          echo "=== FIND WORKSPACE ==="
+          find . -name "*.xcworkspace" -type d
+          echo "=== XCODEBUILD LIST ==="
+          xcodebuild -list -project app/Madeira.xcodeproj || echo "xcodebuild -list failed"
 
       - name: Patch Observable
         run: |
