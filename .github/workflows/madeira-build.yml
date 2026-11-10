@@ -1,0 +1,61 @@
+name: Madeira iOS16 Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch v010 tag
+        run: |
+          git fetch https://github.com/willfaust/Madeira.git refs/tags/v0.1.0:refs/tags/v0.1.0
+          git checkout v0.1.0
+          git submodule update --init --recursive
+
+      - name: Patch Observable
+        run: |
+          FILE="app/Madeira/SwiftSteam/Core/SteamSession.swift"
+          sed -i '' 's/@Observable//g' "$FILE"
+          sed -i '' 's/class SteamSession {/class SteamSession: ObservableObject {/' "$FILE"
+
+      - name: Patch BGContinuedProcessingTask
+        run: |
+          FILE="app/Madeira/SteamDownloadBackground.swift"
+          sed -i '' 's/BGContinuedProcessingTaskRequest/AnyObject/g' "$FILE"
+          sed -i '' 's/BGContinuedProcessingTask/AnyObject/g' "$FILE"
+          sed -i '' 's/if #available(iOS 26.0, \*)/if false/g' "$FILE"
+
+      - name: Patch onChange
+        run: |
+          FILE1="app/Madeira/ConfigCatalog.swift"
+          FILE2="app/Madeira/SteamGames.swift"
+          sed -i '' 's/{ _, value in/{ value in/g' "$FILE1"
+          sed -i '' 's/{ _, value in/{ value in/g' "$FILE2"
+
+      - name: Patch Toolbar
+        run: |
+          FILE="app/Madeira/MadeiraApp.swift"
+          sed -i '' '/^    \.toolbar {/,/^    }$/d' "$FILE"
+
+      - name: Set Deployment Target
+        run: |
+          find . -name "*.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 17.0/IPHONEOS_DEPLOYMENT_TARGET = 16.0/g' {} \;
+
+      - name: Build
+        run: |
+          xcodebuild -project app/Madeira.xcodeproj -scheme Madeira -destination 'generic/platform=iOS' -configuration Release build CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log || true
+
+      - name: Show Errors
+        run: |
+          echo "=== Availability errors ==="
+          grep -c "is only available in iOS 17.0 or newer" build.log || echo "0"
+          echo "=== All errors ==="
+          grep "error:" build.log | head -30 || echo "none"
