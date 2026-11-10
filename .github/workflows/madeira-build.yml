@@ -49,14 +49,13 @@ jobs:
         run: |
           FILE1="app/Madeira/ConfigCatalog.swift"
           FILE2="app/Madeira/SteamGames.swift"
-          FILE3="app/Madeira/SwiftSteam/SteamSignInView.swift"
           sed -i '' 's/{ _, value in/{ value in/g' "$FILE1"
           sed -i '' 's/{ _, value in/{ value in/g' "$FILE2"
-          sed -i '' 's/{ _, value in/{ value in/g' "$FILE3"
 
-      - name: Patch Toolbar SteamSignInView
+      - name: Patch SteamSignInView
         run: |
           FILE="app/Madeira/SwiftSteam/SteamSignInView.swift"
+          sed -i '' '69,70d' "$FILE"
           sed -i '' '54,58d' "$FILE"
 
       - name: Build
