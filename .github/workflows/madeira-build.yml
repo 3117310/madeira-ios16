@@ -20,20 +20,17 @@ jobs:
           git checkout v0.1.0
           git submodule update --init --recursive
 
-      - name: Debug - List Files
+      - name: Xcode Version
+        run: xcodebuild -version && xcodebuild -showsdks | grep iOS
+
+      - name: Install Dependencies
         run: |
-          echo "=== PWD ==="
-          pwd
-          echo "=== ROOT LS ==="
-          ls -la
-          echo "=== APP LS ==="
-          ls -la app/
-          echo "=== FIND XCODEPROJ ==="
-          find . -name "*.xcodeproj" -type d
-          echo "=== FIND WORKSPACE ==="
-          find . -name "*.xcworkspace" -type d
-          echo "=== XCODEBUILD LIST ==="
-          xcodebuild -list -project app/Madeira.xcodeproj || echo "xcodebuild -list failed"
+          brew install cmake ninja meson pkg-config autoconf automake libtool bison flex sevenzip llvm
+
+      - name: Placeholder Missing Dirs
+        run: |
+          mkdir -p app/Madeira/x86_64-vcruntime
+          mkdir -p app/Madeira/fonts-ja
 
       - name: Patch Observable
         run: |
@@ -60,20 +57,29 @@ jobs:
           FILE="app/Madeira/MadeiraApp.swift"
           sed -i '' '/^    \.toolbar {/,/^    }$/d' "$FILE"
 
-      - name: Set Deployment Target
-        run: |
-          find . -name "*.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 17.0/IPHONEOS_DEPLOYMENT_TARGET = 16.0/g' {} \;
-
       - name: Build
+        env:
+          GITHUB_ACTIONS: "true"
         run: |
-          xcodebuild -project app/Madeira.xcodeproj -scheme Madeira -destination 'generic/platform=iOS' -configuration Release build CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log
-          echo "=== Build exit code: ${PIPESTATUS[0]} ==="
+          set -o pipefail
+          xcodebuild \
+            -project app/Madeira.xcodeproj \
+            -scheme Madeira \
+            -configuration Debug \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            IPHONEOS_DEPLOYMENT_TARGET=16.0 \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build 2>&1 | tee build.log
 
       - name: Show Errors
         if: always()
         run: |
+          echo "=== Swift Compile count ==="
+          grep -c "SwiftCompile" build.log || echo "0"
           echo "=== Availability errors ==="
-          grep -c "is only available in iOS 17.0 or newer" build.log || echo "0"
+          grep -c "only available in iOS" build.log || echo "0"
           echo "=== All errors ==="
           grep "error:" build.log | head -30 || echo "none"
 
