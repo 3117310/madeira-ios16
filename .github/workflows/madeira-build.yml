@@ -40,7 +40,7 @@ jobs:
 
       - name: Patch onChange to single-arg
         run: |
-          find app/Madeira -name "*.swift" -exec sed -i '' 's/{ [a-zA-Z_]*, [a-zA-Z_]* in/{ \2 in/g' {} \;
+          find app/Madeira -name "*.swift" -exec sed -i '' 's/{ _, \([a-zA-Z_]*\) in/{ \1 in/g' {} \;
 
       - name: Patch SteamDownloadBackground
         run: |
@@ -53,6 +53,13 @@ jobs:
         run: |
           FILE="app/Madeira/SwiftSteam/SteamSignInView.swift"
           sed -i '' '54,58d' "$FILE"
+
+      - name: Patch SteamSignInView onChange
+        run: |
+          FILE="app/Madeira/SwiftSteam/SteamSignInView.swift"
+          sed -i '' '65d' "$FILE"
+          sed -i '' '64d' "$FILE"
+          sed -i '' '59,63d' "$FILE"
 
       - name: Build
         env:
