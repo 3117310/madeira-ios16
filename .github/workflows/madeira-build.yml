@@ -38,23 +38,21 @@ jobs:
           sed -i '' 's/@Observable//g' "$FILE"
           sed -i '' 's/class SteamSession {/class SteamSession: ObservableObject {/' "$FILE"
 
+      - name: Patch onChange to single-arg
+        run: |
+          find app/Madeira -name "*.swift" -exec sed -i '' 's/{ [a-zA-Z_]*, [a-zA-Z_]* in/{ \2 in/g' {} \;
+
       - name: Patch SteamDownloadBackground
         run: |
           FILE="app/Madeira/SteamDownloadBackground.swift"
+          sed -i '' 's/BGContinuedProcessingTaskRequest/AnyObject/g' "$FILE"
+          sed -i '' 's/BGContinuedProcessingTask/AnyObject/g' "$FILE"
           sed -i '' 's/if #available(iOS 26.0, \*)/if false/g' "$FILE"
 
-      - name: Patch All onChange Single-line
-        run: |
-          find app/Madeira -name "*.swift" -exec sed -i '' '/\.onChange(of:/d' {} \;
-
-      - name: Patch All toolbar
-        run: |
-          find app/Madeira -name "*.swift" -exec sed -i '' '/\.toolbar {/d' {} \;
-
-      - name: Patch SteamSignInView
+      - name: Patch SteamSignInView toolbar
         run: |
           FILE="app/Madeira/SwiftSteam/SteamSignInView.swift"
-          sed -i '' '64,68d' "$FILE"
+          sed -i '' '54,58d' "$FILE"
 
       - name: Build
         env:
